@@ -9,8 +9,7 @@ type ProductRepo struct {
 	db *gorm.DB
 }
 
-func (r *ProductRepo) List() []model.Product {
-	var products []model.Product
+func (r *ProductRepo) List() (products []model.Product) {
 	r.db.Model(&model.Product{}).Find(&products)
 	return products
 }

@@ -10,6 +10,7 @@ func Migrate(db *gorm.DB) {
 		&Cart{},
 		&User{},
 		&Product{},
+		&OrderProduct{},
 		&Order{},
 	)
 	if err != nil {

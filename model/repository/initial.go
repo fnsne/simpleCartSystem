@@ -9,6 +9,6 @@ var CART *CartRepo
 var PRODUCT model.ProductRepository
 
 func Initial(db *gorm.DB) {
-	//CART=NewCartRepo(db)
+	CART = NewCartRepo(db)
 	PRODUCT = NewProductRepo(db)
 }

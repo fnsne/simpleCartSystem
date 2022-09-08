@@ -19,6 +19,9 @@ func setupRouter(engine *gin.Engine) *gin.Engine {
 	productAPI := api.Group("/product")
 	productAPI.GET("/", handler.GetAllProducts)
 
+	cartAPI := api.Group("/cart")
+	cartAPI.GET("/", handler.GetCart)
+
 	return engine
 }
 func setupSwagger(engine *gin.Engine) *gin.Engine {
