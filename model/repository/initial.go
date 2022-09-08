@@ -5,7 +5,7 @@ import (
 	"shopline-question/model"
 )
 
-var CART *CartRepo
+var CART model.CartRepository
 var PRODUCT model.ProductRepository
 
 func Initial(db *gorm.DB) {

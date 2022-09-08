@@ -8,7 +8,7 @@ import (
 type Cart struct {
 	gorm.Model
 	UserID   uint
-	Products []OrderProduct
+	Products []OrderProduct  `gorm:foreignKey:CartID`
 	Amount   decimal.Decimal `gorm:"type:decimal(23,5)"`
 }
 
@@ -17,5 +17,10 @@ type OrderProduct struct {
 	CartID    uint
 	ProductID uint
 	Product   Product `gorm:"foreignKey:ProductID"`
+	Quantity  uint
+}
+
+type AddProduct struct {
+	ProductID uint
 	Quantity  uint
 }

@@ -5,4 +5,5 @@ type ProductRepository interface {
 }
 type CartRepository interface {
 	GetByUserID(userId int) (cart Cart)
+	Update(cart Cart) error
 }
