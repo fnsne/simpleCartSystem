@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"github.com/pkg/errors"
 	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
 	"shopline-question/model"
@@ -16,6 +17,10 @@ func (r *CartRepo) GetByUserID(userId int) (cart model.Cart) {
 }
 
 func (r *CartRepo) Update(cart model.Cart) error {
+	if !PRODUCT.AllExist(cart.GetProductIds()) {
+		return errors.New("product not exist")
+	}
+
 	err := r.db.Model(&model.Cart{Model: gorm.Model{ID: cart.ID}}).
 		Association("Products").
 		Replace(cart.Products)

@@ -17,3 +17,10 @@ func (r *ProductRepo) List() (products []model.Product) {
 func NewProductRepo(db *gorm.DB) *ProductRepo {
 	return &ProductRepo{db: db}
 }
+
+func (r *ProductRepo) AllExist(productIds []uint) (Exist bool) {
+	var count int64
+	r.db.Model(&model.Product{}).Where("id in (?)", productIds).Count(&count)
+	Exist = int(count) == len(productIds)
+	return Exist
+}
