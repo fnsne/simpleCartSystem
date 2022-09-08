@@ -1,9 +1,12 @@
 package repository
 
-import "gorm.io/gorm"
+import (
+	"gorm.io/gorm"
+	"shopline-question/model"
+)
 
 var CART *CartRepo
-var PRODUCT *ProductRepo
+var PRODUCT model.ProductRepository
 
 func Initial(db *gorm.DB) {
 	//CART=NewCartRepo(db)

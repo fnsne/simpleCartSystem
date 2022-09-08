@@ -31,14 +31,14 @@ type ProductTests struct {
 func (suite *ProductTests) SetupTest() {
 	db := config.NewUserDB()
 	config.DB = db
-	//config.DropTestTable()
+	config.DropTestTable(&model.Product{})
 	model.Migrate(db)
 	repository.Initial(db)
 	suite.engine = router.NewRouter()
 }
 
 func (suite *ProductTests) Test_GetProductionList() {
-	suite.givenProducts([]model.Product{
+	GivenProducts([]model.Product{
 		{
 			Model:     gorm.Model{ID: 1},
 			Name:      "product1",
@@ -59,10 +59,6 @@ func (suite *ProductTests) Test_GetProductionList() {
 		{Name: "product1", Price: decimal.NewFromInt(10), Inventory: 2},
 		{Name: "product2", Price: decimal.NewFromInt(20), Inventory: 5},
 	})
-}
-
-func (suite *ProductTests) givenProducts(products []model.Product) *gorm.DB {
-	return config.DB.Create(&products)
 }
 
 func (suite *ProductTests) responseProductListShouldBe(expectedProducts []model.Product) {
