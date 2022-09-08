@@ -155,6 +155,30 @@ func (suite *CartTests) Test_AddProductToCart_withNotExistProduct() {
 		Amount: decimal.NewFromInt(70),
 	})
 }
+func (suite *CartTests) Test_AddProductToCart_withNotEnoughProduct() {
+	GivenProducts([]model.Product{
+		{
+			Model:     gorm.Model{ID: 1},
+			Name:      "product 1",
+			Price:     decimal.NewFromInt(10),
+			Inventory: 1,
+		},
+	})
+	GivenCart(model.Cart{UserID: 1})
+	addProduct := model.Cart{
+		UserID: 1,
+		Products: []model.OrderProduct{
+			{ProductID: 1, Quantity: 3},
+		},
+	}
+	suite.givenUpdateCartReq(addProduct)
+	suite.responseStatusShouldBe(http.StatusBadRequest)
+	suite.currentCartShouldBe(model.Cart{
+		UserID:   1,
+		Products: []model.OrderProduct{},
+		Amount:   decimal.NewFromInt(0),
+	})
+}
 
 func (suite *CartTests) givenUpdateCartReq(cart model.Cart) {
 	b := &bytes.Buffer{}
