@@ -2,6 +2,10 @@ package repository
 
 import "gorm.io/gorm"
 
-func Initial(db *gorm.DB) {
+var CART *CartRepo
+var PRODUCT *ProductRepo
 
+func Initial(db *gorm.DB) {
+	//CART=NewCartRepo(db)
+	PRODUCT = NewProductRepo(db)
 }
