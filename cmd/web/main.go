@@ -5,6 +5,7 @@ package main
 // @schemes http
 
 import (
+	_ "shopline-question/docs"
 	"shopline-question/initial"
 	"shopline-question/router"
 )

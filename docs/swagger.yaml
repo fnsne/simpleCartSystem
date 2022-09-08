@@ -1,0 +1,34 @@
+definitions:
+  model.Product:
+    properties:
+      inventory:
+        type: integer
+      name:
+        type: string
+      price:
+        type: number
+    type: object
+info:
+  contact: {}
+  license: {}
+  title: Swagger API
+  version: 0.0.1
+paths:
+  /api/product/:
+    get:
+      description: 獲得products list
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.Product'
+            type: array
+      summary: Get Product list
+      tags:
+      - product
+schemes:
+- http
+swagger: "2.0"
