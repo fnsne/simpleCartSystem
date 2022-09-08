@@ -25,6 +25,26 @@ var doc = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/cart/": {
+            "get": {
+                "description": "獲得Cart",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "cart"
+                ],
+                "summary": "Get Cart",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.Cart"
+                        }
+                    }
+                }
+            }
+        },
         "/api/product/": {
             "get": {
                 "description": "獲得products list",
@@ -50,6 +70,41 @@ var doc = `{
         }
     },
     "definitions": {
+        "model.Cart": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "products": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.OrderProduct"
+                    }
+                },
+                "userID": {
+                    "type": "integer"
+                }
+            }
+        },
+        "model.OrderProduct": {
+            "type": "object",
+            "properties": {
+                "cartID": {
+                    "type": "integer"
+                },
+                "product": {
+                    "type": "object",
+                    "$ref": "#/definitions/model.Product"
+                },
+                "productID": {
+                    "type": "integer"
+                },
+                "quantity": {
+                    "type": "integer"
+                }
+            }
+        },
         "model.Product": {
             "type": "object",
             "properties": {

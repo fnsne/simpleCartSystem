@@ -1,4 +1,27 @@
 definitions:
+  model.Cart:
+    properties:
+      amount:
+        type: number
+      products:
+        items:
+          $ref: '#/definitions/model.OrderProduct'
+        type: array
+      userID:
+        type: integer
+    type: object
+  model.OrderProduct:
+    properties:
+      cartID:
+        type: integer
+      product:
+        $ref: '#/definitions/model.Product'
+        type: object
+      productID:
+        type: integer
+      quantity:
+        type: integer
+    type: object
   model.Product:
     properties:
       inventory:
@@ -14,6 +37,19 @@ info:
   title: Swagger API
   version: 0.0.1
 paths:
+  /api/cart/:
+    get:
+      description: 獲得Cart
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Cart'
+      summary: Get Cart
+      tags:
+      - cart
   /api/product/:
     get:
       description: 獲得products list
