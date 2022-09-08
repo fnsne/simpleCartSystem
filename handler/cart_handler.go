@@ -19,6 +19,13 @@ func GetCart(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, cart)
 }
 
+// @Summary Update Cart
+// @description 更新Cart
+// @Tags cart
+// @produce json
+// @router /api/cart/ [put]
+// @param cart body model.Cart required "要更新的cart"
+// @success 200
 func UpdateCart(ctx *gin.Context) {
 	var cart model.Cart
 	err := ctx.ShouldBindJSON(&cart)

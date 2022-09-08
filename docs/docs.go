@@ -43,6 +43,30 @@ var doc = `{
                         }
                     }
                 }
+            },
+            "put": {
+                "description": "更新Cart",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "cart"
+                ],
+                "summary": "Update Cart",
+                "parameters": [
+                    {
+                        "description": "要更新的cart",
+                        "name": "cart",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.Cart"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {}
+                }
             }
         },
         "/api/product/": {

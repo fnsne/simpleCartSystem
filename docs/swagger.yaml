@@ -50,6 +50,22 @@ paths:
       summary: Get Cart
       tags:
       - cart
+    put:
+      description: 更新Cart
+      parameters:
+      - description: 要更新的cart
+        in: body
+        name: cart
+        required: true
+        schema:
+          $ref: '#/definitions/model.Cart'
+      produces:
+      - application/json
+      responses:
+        "200": {}
+      summary: Update Cart
+      tags:
+      - cart
   /api/product/:
     get:
       description: 獲得products list
