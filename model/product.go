@@ -9,5 +9,5 @@ type Product struct {
 	gorm.Model
 	Name      string
 	Price     decimal.Decimal `gorm:"type:decimal(23,5)"`
-	Inventory uint
+	Inventory uint            `gorm:"check:unsignedInventory, inventory >=0"`
 }
