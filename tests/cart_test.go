@@ -258,6 +258,33 @@ func (suite *CartTests) Test_checkoutCart_when_inventoryNotEnough() {
 	suite.productInventoryShouldBe(1, 1)
 	suite.productInventoryShouldBe(2, 2)
 }
+func (suite *CartTests) Test_checkoutCart_when_noProductInCart() {
+	GivenProducts([]model.Product{
+		{
+			Model:     gorm.Model{ID: 1},
+			Name:      "product 1",
+			Price:     decimal.NewFromInt(10),
+			Inventory: 1,
+		},
+		{
+			Model:     gorm.Model{ID: 2},
+			Name:      "product 2",
+			Price:     decimal.NewFromInt(20),
+			Inventory: 2,
+		},
+	})
+	GivenCart(model.Cart{UserID: 1, Products: []model.CartProduct{}})
+	suite.givenCartCheckoutReq()
+	suite.responseStatusShouldBe(http.StatusBadRequest)
+	suite.currentCartShouldBe(model.Cart{
+		UserID:   1,
+		Products: []model.CartProduct{},
+		Amount:   decimal.NewFromInt(0),
+	})
+	suite.orderShouldNotExist(1)
+	suite.productInventoryShouldBe(1, 1)
+	suite.productInventoryShouldBe(2, 2)
+}
 
 func (suite *CartTests) orderShouldNotExist(cartID int) {
 	var count int64

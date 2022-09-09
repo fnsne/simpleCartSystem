@@ -47,6 +47,9 @@ func (r *CartRepo) Update(cart model.Cart) error {
 
 func (r *CartRepo) Checkout(cartID int) (orderID uint, err error) {
 	cart := r.GetByID(cartID)
+	if !cart.CartHasOrderProduct() {
+		return 0, errors.New("there should be product in cart")
+	}
 	tx := r.db.Begin()
 	for _, product := range cart.Products {
 		err := tx.Exec("UPDATE products SET inventory=inventory-? WHERE id=?",
