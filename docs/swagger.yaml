@@ -3,14 +3,16 @@ definitions:
     properties:
       amount:
         type: number
+      isCheckout:
+        type: boolean
       products:
         items:
-          $ref: '#/definitions/model.OrderProduct'
+          $ref: '#/definitions/model.CartProduct'
         type: array
       userID:
         type: integer
     type: object
-  model.OrderProduct:
+  model.CartProduct:
     properties:
       cartID:
         type: integer
@@ -64,6 +66,16 @@ paths:
       responses:
         "200": {}
       summary: Update Cart
+      tags:
+      - cart
+  /api/cart/checkout:
+    post:
+      description: Cart 結帳
+      produces:
+      - application/json
+      responses:
+        "200": {}
+      summary: checkout Cart
       tags:
       - cart
   /api/product/:

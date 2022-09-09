@@ -46,6 +46,12 @@ func UpdateCart(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, nil)
 }
 
+// @Summary checkout Cart
+// @description Cart 結帳
+// @Tags cart
+// @produce json
+// @router /api/cart/checkout [post]
+// @success 200
 func CheckoutCart(ctx *gin.Context) {
 	//todo:這邊先hardcode，等加上user system再從session/cookie中拿出cartID
 	orderID, err := repository.CART.Checkout(1)

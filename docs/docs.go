@@ -69,6 +69,21 @@ var doc = `{
                 }
             }
         },
+        "/api/cart/checkout": {
+            "post": {
+                "description": "Cart 結帳",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "cart"
+                ],
+                "summary": "checkout Cart",
+                "responses": {
+                    "200": {}
+                }
+            }
+        },
         "/api/product/": {
             "get": {
                 "description": "獲得products list",
@@ -100,10 +115,13 @@ var doc = `{
                 "amount": {
                     "type": "number"
                 },
+                "isCheckout": {
+                    "type": "boolean"
+                },
                 "products": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/model.OrderProduct"
+                        "$ref": "#/definitions/model.CartProduct"
                     }
                 },
                 "userID": {
@@ -111,7 +129,7 @@ var doc = `{
                 }
             }
         },
-        "model.OrderProduct": {
+        "model.CartProduct": {
             "type": "object",
             "properties": {
                 "cartID": {
