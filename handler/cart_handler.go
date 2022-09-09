@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"shopline-question/model"
@@ -40,6 +41,7 @@ func UpdateCart(ctx *gin.Context) {
 	}
 	err = repository.CART.Update(cart)
 	if err != nil {
+		fmt.Println("err:", err.Error())
 		ctx.JSON(http.StatusBadRequest, err.Error())
 		return
 	}

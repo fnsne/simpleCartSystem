@@ -223,7 +223,49 @@ func (suite *CartTests) Test_checkoutCart_when_allInventoryEnough() {
 	suite.productInventoryShouldBe(2, 1)
 }
 
-// todo: when inventory not enough
+func (suite *CartTests) Test_checkoutCart_when_inventoryNotEnough() {
+	GivenProducts([]model.Product{
+		{
+			Model:     gorm.Model{ID: 1},
+			Name:      "product 1",
+			Price:     decimal.NewFromInt(10),
+			Inventory: 1,
+		},
+		{
+			Model:     gorm.Model{ID: 2},
+			Name:      "product 2",
+			Price:     decimal.NewFromInt(20),
+			Inventory: 2,
+		},
+	})
+	GivenCart(model.Cart{UserID: 1,
+		Products: []model.CartProduct{
+			{ProductID: 1, Quantity: 1},
+			{ProductID: 2, Quantity: 3},
+		},
+	})
+	suite.givenCartCheckoutReq()
+	suite.responseStatusShouldBe(http.StatusBadRequest)
+	suite.currentCartShouldBe(model.Cart{
+		UserID: 1,
+		Products: []model.CartProduct{
+			{ProductID: 1, Quantity: 1},
+			{ProductID: 2, Quantity: 3},
+		},
+		Amount: decimal.NewFromInt(70),
+	})
+	suite.orderShouldNotExist(1)
+	suite.productInventoryShouldBe(1, 1)
+	suite.productInventoryShouldBe(2, 2)
+}
+
+func (suite *CartTests) orderShouldNotExist(cartID int) {
+	var count int64
+	err := config.DB.Model(&model.Order{}).Where("id=?", cartID).Count(&count).Error
+	require.NoError(suite.T(), err)
+	assert.Equal(suite.T(), int64(0), count)
+}
+
 // todo: when no product in cart
 func (suite *CartTests) productInventoryShouldBe(productID int, inventory uint) {
 	var p model.Product

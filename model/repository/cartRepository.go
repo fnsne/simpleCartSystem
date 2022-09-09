@@ -17,6 +17,7 @@ func (r *CartRepo) GetByID(cartID int) (cart model.Cart) {
 		Where("id=?", cartID).
 		Where("is_checkout=?", false).
 		First(&cart)
+	cart.CalculateAmount()
 	return cart
 }
 
@@ -30,7 +31,7 @@ func (r *CartRepo) Update(cart model.Cart) error {
 		return err2
 	}
 	err = r.db.Model(&model.Cart{Model: gorm.Model{ID: cart.ID}}).
-		Association("Products.Product").
+		Association("Products").
 		Replace(cart.Products)
 	if err != nil {
 		return err

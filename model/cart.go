@@ -43,8 +43,11 @@ func (c *Cart) ToOrder() *Order {
 	return &Order{
 		UserID:   c.UserID,
 		Products: c.toOrderProducts(),
-		Amount:   c.getAmount(),
+		Amount:   c.Amount,
 	}
+}
+func (c *Cart) CalculateAmount() {
+	c.Amount = c.getAmount()
 }
 func (c *Cart) getAmount() decimal.Decimal {
 	var amount decimal.Decimal
