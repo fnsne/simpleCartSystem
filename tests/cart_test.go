@@ -285,6 +285,40 @@ func (suite *CartTests) Test_checkoutCart_when_noProductInCart() {
 	suite.productInventoryShouldBe(1, 1)
 	suite.productInventoryShouldBe(2, 2)
 }
+func (suite *CartTests) Test_checkoutCart_when_productQuantityZero() {
+	GivenProducts([]model.Product{
+		{
+			Model:     gorm.Model{ID: 1},
+			Name:      "product 1",
+			Price:     decimal.NewFromInt(10),
+			Inventory: 1,
+		},
+		{
+			Model:     gorm.Model{ID: 2},
+			Name:      "product 2",
+			Price:     decimal.NewFromInt(20),
+			Inventory: 2,
+		},
+	})
+	GivenCart(model.Cart{
+		UserID: 1,
+		Products: []model.CartProduct{
+			{ProductID: 2, Quantity: 0},
+		},
+	})
+	suite.givenCartCheckoutReq()
+	suite.responseStatusShouldBe(http.StatusBadRequest)
+	suite.currentCartShouldBe(model.Cart{
+		UserID: 1,
+		Products: []model.CartProduct{
+			{ProductID: 2, Quantity: 0},
+		},
+		Amount: decimal.NewFromInt(0),
+	})
+	suite.orderShouldNotExist(1)
+	suite.productInventoryShouldBe(1, 1)
+	suite.productInventoryShouldBe(2, 2)
+}
 
 func (suite *CartTests) orderShouldNotExist(cartID int) {
 	var count int64
@@ -293,7 +327,6 @@ func (suite *CartTests) orderShouldNotExist(cartID int) {
 	assert.Equal(suite.T(), int64(0), count)
 }
 
-// todo: when no product in cart
 func (suite *CartTests) productInventoryShouldBe(productID int, inventory uint) {
 	var p model.Product
 	err := config.DB.Model(&model.Product{}).Where("id=?", productID).First(&p).Error

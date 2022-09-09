@@ -57,11 +57,15 @@ func (c *Cart) getAmount() decimal.Decimal {
 	return amount
 }
 
-func (c *Cart) CartHasOrderProduct() bool {
+func (c *Cart) CartHasOrderProduct() (has bool) {
 	if len(c.Products) != 0 {
-		return true
+		for _, product := range c.Products {
+			if product.Quantity != 0 {
+				has = true
+			}
+		}
 	}
-	return false
+	return has
 }
 
 type AddProduct struct {
