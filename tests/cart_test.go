@@ -75,6 +75,38 @@ func (suite *CartTests) Test_GetCart() {
 	})
 
 }
+func (suite *CartTests) Test_GetCart_whenNoCartWaitingForCheckout() {
+	GivenProducts([]model.Product{
+		{
+			Model:     gorm.Model{ID: 1},
+			Name:      "product 1",
+			Price:     decimal.NewFromInt(10),
+			Inventory: 3,
+		},
+		{
+			Model:     gorm.Model{ID: 2},
+			Name:      "product 2",
+			Price:     decimal.NewFromInt(20),
+			Inventory: 5,
+		},
+	})
+	GivenCart(model.Cart{
+		UserID: 1,
+		Products: []model.CartProduct{
+			{ProductID: 1, Quantity: 1},
+			{ProductID: 2, Quantity: 3},
+		},
+		Amount:     decimal.NewFromInt(70),
+		IsCheckout: true,
+	})
+	suite.currentCartShouldBe(model.Cart{
+		UserID:   1,
+		Products: []model.CartProduct{},
+		Amount:   decimal.NewFromInt(0),
+	})
+
+}
+
 func (suite *CartTests) Test_GetCart_withoutExistCart() {
 	GivenProducts([]model.Product{
 		{
