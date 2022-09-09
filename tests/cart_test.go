@@ -35,6 +35,8 @@ func (suite *CartTests) SetupTest() {
 	config.DropTestTable(&model.Product{})
 	config.DropTestTable(&model.Cart{})
 	config.DropTestTable(&model.User{})
+	config.DropTestTable(&model.CartProduct{})
+	config.DropTestTable(&model.Order{})
 	config.DropTestTable(&model.OrderProduct{})
 	model.Migrate(db)
 	repository.Initial(db)
@@ -58,14 +60,14 @@ func (suite *CartTests) Test_GetCart() {
 	})
 	GivenCart(model.Cart{
 		UserID: 1,
-		Products: []model.OrderProduct{
+		Products: []model.CartProduct{
 			{ProductID: 1, Quantity: 1},
 			{ProductID: 2, Quantity: 3},
 		},
 		Amount: decimal.NewFromInt(70)})
 	suite.currentCartShouldBe(model.Cart{
 		UserID: 1,
-		Products: []model.OrderProduct{
+		Products: []model.CartProduct{
 			{ProductID: 1, Quantity: 1},
 			{ProductID: 2, Quantity: 3},
 		},
@@ -73,6 +75,8 @@ func (suite *CartTests) Test_GetCart() {
 	})
 
 }
+
+//todo get cart without existed cart will create one
 
 func (suite *CartTests) Test_AddProductToCart() {
 	GivenProducts([]model.Product{
@@ -91,7 +95,7 @@ func (suite *CartTests) Test_AddProductToCart() {
 	})
 	GivenCart(model.Cart{
 		UserID: 1,
-		Products: []model.OrderProduct{
+		Products: []model.CartProduct{
 			{ProductID: 1, Quantity: 1},
 			{ProductID: 2, Quantity: 3},
 		},
@@ -99,7 +103,7 @@ func (suite *CartTests) Test_AddProductToCart() {
 
 	addProduct := model.Cart{
 		UserID: 1,
-		Products: []model.OrderProduct{
+		Products: []model.CartProduct{
 			{ProductID: 1, Quantity: 3},
 			{ProductID: 2, Quantity: 1},
 		},
@@ -108,7 +112,7 @@ func (suite *CartTests) Test_AddProductToCart() {
 	suite.responseStatusShouldBe(http.StatusOK)
 	suite.currentCartShouldBe(model.Cart{
 		UserID: 1,
-		Products: []model.OrderProduct{
+		Products: []model.CartProduct{
 			{ProductID: 1, Quantity: 3},
 			{ProductID: 2, Quantity: 1},
 		},
@@ -132,7 +136,7 @@ func (suite *CartTests) Test_AddProductToCart_withNotExistProduct() {
 	})
 	GivenCart(model.Cart{
 		UserID: 1,
-		Products: []model.OrderProduct{
+		Products: []model.CartProduct{
 			{ProductID: 1, Quantity: 1},
 			{ProductID: 2, Quantity: 3},
 		},
@@ -140,7 +144,7 @@ func (suite *CartTests) Test_AddProductToCart_withNotExistProduct() {
 
 	addProduct := model.Cart{
 		UserID: 1,
-		Products: []model.OrderProduct{
+		Products: []model.CartProduct{
 			{ProductID: 100, Quantity: 3},
 		},
 	}
@@ -148,7 +152,7 @@ func (suite *CartTests) Test_AddProductToCart_withNotExistProduct() {
 	suite.responseStatusShouldBe(http.StatusBadRequest)
 	suite.currentCartShouldBe(model.Cart{
 		UserID: 1,
-		Products: []model.OrderProduct{
+		Products: []model.CartProduct{
 			{ProductID: 1, Quantity: 1},
 			{ProductID: 2, Quantity: 3},
 		},
@@ -167,7 +171,7 @@ func (suite *CartTests) Test_AddProductToCart_withNotEnoughProduct() {
 	GivenCart(model.Cart{UserID: 1})
 	addProduct := model.Cart{
 		UserID: 1,
-		Products: []model.OrderProduct{
+		Products: []model.CartProduct{
 			{ProductID: 1, Quantity: 3},
 		},
 	}
@@ -175,9 +179,75 @@ func (suite *CartTests) Test_AddProductToCart_withNotEnoughProduct() {
 	suite.responseStatusShouldBe(http.StatusBadRequest)
 	suite.currentCartShouldBe(model.Cart{
 		UserID:   1,
-		Products: []model.OrderProduct{},
+		Products: []model.CartProduct{},
 		Amount:   decimal.NewFromInt(0),
 	})
+}
+func (suite *CartTests) Test_checkoutCart_when_allInventoryEnough() {
+	GivenProducts([]model.Product{
+		{
+			Model:     gorm.Model{ID: 1},
+			Name:      "product 1",
+			Price:     decimal.NewFromInt(10),
+			Inventory: 1,
+		},
+		{
+			Model:     gorm.Model{ID: 2},
+			Name:      "product 2",
+			Price:     decimal.NewFromInt(20),
+			Inventory: 2,
+		},
+	})
+	GivenCart(model.Cart{UserID: 1,
+		Products: []model.CartProduct{
+			{ProductID: 1, Quantity: 1},
+			{ProductID: 2, Quantity: 1},
+		},
+	})
+	suite.givenCartCheckoutReq()
+	suite.responseStatusShouldBe(http.StatusOK)
+	suite.currentCartShouldBe(model.Cart{
+		UserID:   0,
+		Products: []model.CartProduct{},
+		Amount:   decimal.NewFromInt(0),
+	})
+	suite.orderInDBShouldBe(1, model.Order{
+		UserID: 1,
+		Products: []model.OrderProduct{
+			{OrderID: 1, ProductID: 1, Quantity: 1},
+			{OrderID: 1, ProductID: 2, Quantity: 1},
+		},
+		Amount: decimal.NewFromInt(30),
+	})
+	suite.productInventoryShouldBe(1, 0)
+	suite.productInventoryShouldBe(2, 1)
+}
+
+// todo: when inventory not enough
+// todo: when no product in cart
+func (suite *CartTests) productInventoryShouldBe(productID int, inventory uint) {
+	var p model.Product
+	err := config.DB.Model(&model.Product{}).Where("id=?", productID).First(&p).Error
+	require.NoError(suite.T(), err)
+	assert.Equal(suite.T(), inventory, p.Inventory)
+}
+
+func (suite *CartTests) orderInDBShouldBe(orderID int, expectedOrder model.Order) {
+	var order model.Order
+	err := config.DB.Model(&model.Order{}).Preload("Products").Where("id=?", orderID).First(&order).Error
+	require.NoError(suite.T(), err)
+	assert.Equal(suite.T(), expectedOrder.UserID, order.UserID)
+	for i := 0; i < len(expectedOrder.Products); i++ {
+		actual := order.Products[i]
+		expected := expectedOrder.Products[i]
+		assert.Equal(suite.T(), expected.ProductID, actual.ProductID)
+		assert.Equal(suite.T(), expected.Quantity, actual.Quantity)
+	}
+	assert.Equal(suite.T(), expectedOrder.Amount, order.Amount)
+}
+
+func (suite *CartTests) givenCartCheckoutReq() {
+	suite.request = httptest.NewRequest(http.MethodPost, "/api/cart/checkout", nil)
 }
 
 func (suite *CartTests) givenUpdateCartReq(cart model.Cart) {
@@ -193,10 +263,12 @@ func (suite *CartTests) responseCartShouldBe(expectedCart model.Cart) {
 	require.NoError(suite.T(), err)
 	assert.Equal(suite.T(), expectedCart.UserID, responseCart.UserID)
 	assert.Equal(suite.T(), len(expectedCart.Products), len(responseCart.Products))
-	for i := 0; i < len(expectedCart.Products); i++ {
-		assert.Equal(suite.T(), expectedCart.Products[i].ProductID, responseCart.Products[i].ProductID)
+	if len(expectedCart.Products) != 0 {
+		for i := 0; i < len(expectedCart.Products); i++ {
+			assert.Equal(suite.T(), expectedCart.Products[i].ProductID, responseCart.Products[i].ProductID)
+		}
+		assert.Equal(suite.T(), expectedCart.Amount, responseCart.Amount)
 	}
-	assert.Equal(suite.T(), expectedCart.Amount, responseCart.Amount)
 }
 
 func (suite *CartTests) responseStatusShouldBe(status int) {

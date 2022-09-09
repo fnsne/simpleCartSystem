@@ -9,7 +9,6 @@ import (
 
 func Initial() {
 	db := config.NewUserDB()
-	//todo:需要思考怎麼弄migrate.
 	repository.Initial(db)
 	config.DB = db
 	gin.SetMode(config.GinMode)

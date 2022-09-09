@@ -14,8 +14,8 @@ import (
 // @router /api/cart/ [get]
 // @success 200 {object} model.Cart
 func GetCart(ctx *gin.Context) {
-	//todo:這邊先hardcode，等加上user system再從session/cookie中拿出userID
-	cart := repository.CART.GetByUserID(1)
+	//todo:這邊先hardcode，等加上user system再從session/cookie中拿出CartID
+	cart := repository.CART.GetByID(1)
 	ctx.JSON(http.StatusOK, cart)
 }
 
@@ -44,4 +44,14 @@ func UpdateCart(ctx *gin.Context) {
 		return
 	}
 	ctx.JSON(http.StatusOK, nil)
+}
+
+func CheckoutCart(ctx *gin.Context) {
+	//todo:這邊先hardcode，等加上user system再從session/cookie中拿出cartID
+	orderID, err := repository.CART.Checkout(1)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, err.Error())
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{"orderID": orderID})
 }

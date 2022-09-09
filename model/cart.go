@@ -7,9 +7,10 @@ import (
 
 type Cart struct {
 	gorm.Model
-	UserID   uint
-	Products []OrderProduct  `gorm:"foreignKey:CartID"`
-	Amount   decimal.Decimal `gorm:"type:decimal(23,5)"`
+	UserID     uint
+	Products   []CartProduct   `gorm:"foreignKey:CartID"`
+	Amount     decimal.Decimal `gorm:"type:decimal(23,5)"`
+	IsCheckout bool
 }
 
 func (c *Cart) GetProductIds() []uint {
@@ -20,12 +21,37 @@ func (c *Cart) GetProductIds() []uint {
 	return ids
 }
 
-type OrderProduct struct {
+type CartProduct struct {
 	gorm.Model
 	CartID    uint
 	ProductID uint
 	Product   Product `gorm:"foreignKey:ProductID"`
 	Quantity  uint
+}
+
+func (c *Cart) toOrderProducts() []OrderProduct {
+	var oPs []OrderProduct
+	for _, product := range c.Products {
+		oPs = append(oPs, OrderProduct{
+			ProductID: product.ProductID,
+			Quantity:  product.Quantity,
+		})
+	}
+	return oPs
+}
+func (c *Cart) ToOrder() *Order {
+	return &Order{
+		UserID:   c.UserID,
+		Products: c.toOrderProducts(),
+		Amount:   c.getAmount(),
+	}
+}
+func (c *Cart) getAmount() decimal.Decimal {
+	var amount decimal.Decimal
+	for _, product := range c.Products {
+		amount = amount.Add(product.Product.Price.Mul(decimal.NewFromInt(int64(product.Quantity))))
+	}
+	return amount
 }
 
 type AddProduct struct {

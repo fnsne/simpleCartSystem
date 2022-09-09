@@ -5,6 +5,7 @@ type ProductRepository interface {
 	AllExist(productIds []uint) (Exist bool)
 }
 type CartRepository interface {
-	GetByUserID(userId int) (cart Cart)
+	GetByID(cartID int) (cart Cart)
 	Update(cart Cart) error
+	Checkout(cartID int) (orderID uint, err error)
 }

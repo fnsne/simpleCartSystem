@@ -11,8 +11,12 @@ type CartRepo struct {
 	db *gorm.DB
 }
 
-func (r *CartRepo) GetByUserID(userId int) (cart model.Cart) {
-	r.db.Preload("Products.Product").Model(&model.Cart{}).Where("user_id=?", userId).First(&cart)
+func (r *CartRepo) GetByID(cartID int) (cart model.Cart) {
+	r.db.Preload("Products.Product").
+		Model(&model.Cart{}).
+		Where("id=?", cartID).
+		Where("is_checkout=?", false).
+		First(&cart)
 	return cart
 }
 
@@ -26,19 +30,45 @@ func (r *CartRepo) Update(cart model.Cart) error {
 		return err2
 	}
 	err = r.db.Model(&model.Cart{Model: gorm.Model{ID: cart.ID}}).
-		Association("Products").
+		Association("Products.Product").
 		Replace(cart.Products)
 	if err != nil {
 		return err
 	}
-	products := r.getOrderProductsBy(cart.ID)
 	amount := decimal.NewFromInt(0)
-	for _, orderProduct := range products {
-		productAmount := orderProduct.Product.Price.Mul(decimal.NewFromInt(int64(orderProduct.Quantity)))
+	for _, cartProduct := range cart.Products {
+		productAmount := cartProduct.Product.Price.Mul(decimal.NewFromInt(int64(cartProduct.Quantity)))
 		amount = amount.Add(productAmount)
 	}
 	err = r.db.Model(&model.Cart{}).Where("id=?", cart.ID).Update("amount", amount).Error
 	return err
+}
+
+func (r *CartRepo) Checkout(cartID int) (orderID uint, err error) {
+	cart := r.GetByID(cartID)
+	tx := r.db.Begin()
+	for _, product := range cart.Products {
+		err := tx.Exec("UPDATE products SET inventory=inventory-? WHERE id=?",
+			product.Quantity,
+			product.ProductID).Error
+		if err != nil {
+			tx.Rollback()
+			return 0, errors.New("there is some product inventory not enough")
+		}
+	}
+	err = tx.Model(&model.Cart{}).Where("id=?", cartID).Update("is_checkout", true).Error
+	if err != nil {
+		tx.Rollback()
+		return 0, errors.New("there is some error in checkout.Please check whether your order has been done or not.")
+	}
+	order := cart.ToOrder()
+	err = tx.Save(order).Error
+	if err != nil {
+		tx.Rollback()
+		return 0, err
+	}
+	tx.Commit()
+	return order.ID, nil
 }
 
 func (r *CartRepo) checkProductInventory(cart model.Cart) (error, error) {
@@ -62,10 +92,10 @@ func (r *CartRepo) checkProductInventory(cart model.Cart) (error, error) {
 	return err, nil
 }
 
-func (r *CartRepo) getOrderProductsBy(cartID uint) []model.OrderProduct {
-	var products []model.OrderProduct
+func (r *CartRepo) getOrderProductsBy(cartID uint) []model.CartProduct {
+	var products []model.CartProduct
 	r.db.Preload("Product").
-		Model(&model.OrderProduct{}).
+		Model(&model.CartProduct{}).
 		Where("cart_id=?", cartID).
 		Find(&products)
 	return products

@@ -22,6 +22,7 @@ func setupRouter(engine *gin.Engine) *gin.Engine {
 	cartAPI := api.Group("/cart")
 	cartAPI.GET("/", handler.GetCart)
 	cartAPI.PUT("/", handler.UpdateCart)
+	cartAPI.POST("/checkout", handler.CheckoutCart)
 
 	return engine
 }
