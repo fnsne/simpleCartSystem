@@ -16,7 +16,10 @@ import (
 // @success 200 {object} model.Cart
 func GetCart(ctx *gin.Context) {
 	//todo:這邊先hardcode，等加上user system再從session/cookie中拿出CartID
-	cart := repository.CART.GetByID(1)
+	cart, err := repository.CART.GetByID(1)
+	if err != nil {
+		cart = repository.CART.NewCart(1)
+	}
 	ctx.JSON(http.StatusOK, cart)
 }
 

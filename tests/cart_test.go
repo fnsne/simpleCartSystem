@@ -75,8 +75,28 @@ func (suite *CartTests) Test_GetCart() {
 	})
 
 }
+func (suite *CartTests) Test_GetCart_withoutExistCart() {
+	GivenProducts([]model.Product{
+		{
+			Model:     gorm.Model{ID: 1},
+			Name:      "product 1",
+			Price:     decimal.NewFromInt(10),
+			Inventory: 3,
+		},
+		{
+			Model:     gorm.Model{ID: 2},
+			Name:      "product 2",
+			Price:     decimal.NewFromInt(20),
+			Inventory: 5,
+		},
+	})
+	suite.currentCartShouldBe(model.Cart{
+		UserID:   1,
+		Products: []model.CartProduct{},
+		Amount:   decimal.NewFromInt(0),
+	})
 
-//todo get cart without existed cart will create one
+}
 
 func (suite *CartTests) Test_AddProductToCart() {
 	GivenProducts([]model.Product{
@@ -207,7 +227,7 @@ func (suite *CartTests) Test_checkoutCart_when_allInventoryEnough() {
 	suite.givenCartCheckoutReq()
 	suite.responseStatusShouldBe(http.StatusOK)
 	suite.currentCartShouldBe(model.Cart{
-		UserID:   0,
+		UserID:   1,
 		Products: []model.CartProduct{},
 		Amount:   decimal.NewFromInt(0),
 	})

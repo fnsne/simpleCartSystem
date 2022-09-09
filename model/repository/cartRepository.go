@@ -11,14 +11,23 @@ type CartRepo struct {
 	db *gorm.DB
 }
 
-func (r *CartRepo) GetByID(cartID int) (cart model.Cart) {
-	r.db.Preload("Products.Product").
+func (r *CartRepo) NewCart(userID uint) model.Cart {
+	cart := model.Cart{UserID: userID}
+	r.db.Create(&cart)
+	return cart
+}
+
+func (r *CartRepo) GetByID(cartID uint) (cart model.Cart, err error) {
+	err = r.db.Preload("Products.Product").
 		Model(&model.Cart{}).
 		Where("id=?", cartID).
 		Where("is_checkout=?", false).
-		First(&cart)
+		First(&cart).Error
+	if err != nil {
+		return cart, err
+	}
 	cart.CalculateAmount()
-	return cart
+	return cart, nil
 }
 
 func (r *CartRepo) Update(cart model.Cart) error {
@@ -45,8 +54,11 @@ func (r *CartRepo) Update(cart model.Cart) error {
 	return err
 }
 
-func (r *CartRepo) Checkout(cartID int) (orderID uint, err error) {
-	cart := r.GetByID(cartID)
+func (r *CartRepo) Checkout(cartID uint) (orderID uint, err error) {
+	cart, err := r.GetByID(cartID)
+	if err != nil {
+		return 0, err
+	}
 	if !cart.CartHasOrderProduct() {
 		return 0, errors.New("there should be product in cart")
 	}
